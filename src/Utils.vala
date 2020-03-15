@@ -1,5 +1,11 @@
 namespace ElementaryAccount {
     public class Utils {
+        public static string get_api_uri (string path) {
+            var base_uri = new Soup.URI (Constants.BASE_URL);
+            var constructed_uri = new Soup.URI.with_base (base_uri, path);
+            return constructed_uri.to_string (false);
+        }
+
         public static uint8[] generate_random_bytes (uint count) {
             var bytes = new uint8[count];
             var uint_size = sizeof(uint32);

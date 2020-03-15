@@ -17,7 +17,7 @@ public class AddCardFlow : Gtk.Window {
         var webview = new ElementaryAccount.NativeWebView ();
         webview.success.connect (() => finished ());
 
-        webview.get_with_bearer ("https://davidmhewitt.pythonanywhere.com/intents/add_card", account.account_token);
+        webview.get_with_bearer (ElementaryAccount.Utils.get_api_uri ("/intents/add_card"), account.account_token);
 
         add (webview);
 

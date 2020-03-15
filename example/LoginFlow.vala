@@ -25,7 +25,7 @@ public class LoginFlow : Gtk.Window {
         warning ("verifier: %s", verifier);
         warning ("challenge: %s", challenge);
 
-        var constructed_uri = new Soup.URI ("https://davidmhewitt.pythonanywhere.com/oauth/authorize");
+        var constructed_uri = new Soup.URI (ElementaryAccount.Utils.get_api_uri ("/oauth/authorize"));
         constructed_uri.set_query_from_fields (
             "client_id", CLIENT_ID,
             "scope", "profile",
@@ -46,7 +46,7 @@ public class LoginFlow : Gtk.Window {
     private void on_code_received (string code) {
         warning ("Login succeeded with code: %s", code);
 
-        account.exchange_code_for_token ("https://davidmhewitt.pythonanywhere.com/oauth/token", CLIENT_ID, code, verifier);
+        account.exchange_code_for_token (ElementaryAccount.Utils.get_api_uri ("/oauth/token"), CLIENT_ID, code, verifier);
 
         finished ();
     }

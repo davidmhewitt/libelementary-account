@@ -4,7 +4,7 @@ public class PurchaseFlow : Gtk.Window {
     public ElementaryAccount.AccountManager account { get; construct; }
     public string payment_method_id { get; construct; }
 
-    private const string URL = "https://davidmhewitt.pythonanywhere.com/intents/do_charge?amount=500&stripe_account=acct_1AWVFSHS6fmgRLTb&payment_method=%s";
+    private const string URL = "/intents/do_charge?amount=500&stripe_account=acct_1AWVFSHS6fmgRLTb&payment_method=%s";
 
     public PurchaseFlow (ElementaryAccount.AccountManager manager, string payment_method_id) {
         Object (account: manager, payment_method_id: payment_method_id);
@@ -20,7 +20,7 @@ public class PurchaseFlow : Gtk.Window {
         var webview = new ElementaryAccount.NativeWebView ();
         webview.success.connect (() => finished ());
 
-        var payment_url = URL.printf (payment_method_id);
+        var payment_url = ElementaryAccount.Utils.get_api_uri (URL.printf (payment_method_id));
         if (account.account_token != null) {
             webview.get_with_bearer (payment_url, account.account_token);
         } else {
