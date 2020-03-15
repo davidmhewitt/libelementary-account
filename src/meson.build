@@ -2,14 +2,17 @@ library_files = files (
     'AccountManager.vala',
     'Card.vala',
     'Constants.vala',
-    'NativeWebView.vala',
-    'Utils.vala'
+    'Utils.vala',
+    'Widgets/CardListView.vala',
+    'Widgets/CardRow.vala',
+    'Widgets/NativeWebView.vala',
 )
 
 elementary_accounts_library_build_deps = [
     webkit_dep,
     json_dep,
     secret_dep,
+    granite_dep,
 ]
 
 elementary_accounts_library = shared_library(

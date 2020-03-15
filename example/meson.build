@@ -1,6 +1,5 @@
 example_files = files(
     'AddCardFlow.vala',
-    'CardRow.vala',
     'LoginFlow.vala',
     'MainWindow.vala',
     'PurchaseFlow.vala',
