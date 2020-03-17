@@ -73,6 +73,15 @@ public class MainWindow : Gtk.Window {
     }
 
     private void do_purchase_flow () {
+        if (listbox.get_selected_row () == null) {
+            var purchase_flow = new PurchaseFlow (account, null);
+            purchase_flow.finished.connect (() => {
+                purchase_flow.destroy ();
+            });
+
+            return;
+        }
+
         var selected_card = (listbox.get_selected_row () as CardRow);
         if (selected_card != null) {
             var purchase_flow = new PurchaseFlow (account, selected_card.card.stripe_id);
