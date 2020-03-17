@@ -2,16 +2,16 @@ public class PurchaseFlow : Gtk.Window {
     public signal void finished ();
 
     public ElementaryAccount.AccountManager account { get; construct; }
-    public string? payment_method_id { get; construct; }
+    public ElementaryAccount.Card? payment_method { get; construct; }
 
     private const string URL = "/intents/do_charge?amount=500&stripe_account=acct_1AWVFSHS6fmgRLTb&payment_method=%s";
 
-    public PurchaseFlow (ElementaryAccount.AccountManager manager, string? payment_method_id) {
-        Object (account: manager, payment_method_id: payment_method_id);
+    public PurchaseFlow (ElementaryAccount.AccountManager manager, ElementaryAccount.Card? payment_method) {
+        Object (account: manager, payment_method: payment_method);
     }
 
     construct {
-        set_default_size (500, 500);
+        set_default_size (500, 400);
 
         do_payment_flow ();
     }
@@ -21,11 +21,11 @@ public class PurchaseFlow : Gtk.Window {
         webview.success.connect (() => finished ());
 
         var payment_uri = new Soup.URI (ElementaryAccount.Utils.get_api_uri ("/intents/do_charge"));
-        if (payment_method_id != null) {
+        if (payment_method != null) {
             payment_uri.set_query_from_fields (
                 "amount", "500",
                 "stripe_account", "acct_1AWVFSHS6fmgRLTb",
-                "payment_method", payment_method_id
+                "payment_method", payment_method.stripe_id
             );
         } else {
             payment_uri.set_query_from_fields (

@@ -6,7 +6,6 @@ public class MainWindow : Gtk.Window {
 
     private Gtk.Label status_label;
     private Gtk.Button login_button;
-    private Gtk.ListBox listbox;
 
     construct {
         set_default_size (1024, 768);
@@ -73,22 +72,12 @@ public class MainWindow : Gtk.Window {
     }
 
     private void do_purchase_flow () {
-        if (listbox.get_selected_row () == null) {
-            var purchase_flow = new PurchaseFlow (account, null);
-            purchase_flow.finished.connect (() => {
-                purchase_flow.destroy ();
-            });
+        var card = cards_list.get_selected_card ();
 
-            return;
-        }
-
-        var selected_card = (listbox.get_selected_row () as CardRow);
-        if (selected_card != null) {
-            var purchase_flow = new PurchaseFlow (account, selected_card.card.stripe_id);
-            purchase_flow.finished.connect (() => {
-                purchase_flow.destroy ();
-            });
-        }
+        var purchase_flow = new PurchaseFlow (account, card);
+        purchase_flow.finished.connect (() => {
+            purchase_flow.destroy ();
+        });
     }
 
     public static int main (string[] args) {

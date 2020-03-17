@@ -46,6 +46,20 @@ namespace ElementaryAccount {
             add (grid);
         }
 
+        public Card? get_selected_card () {
+            var selected = listbox.get_selected_row ();
+            if (selected == null) {
+                return null;
+            }
+
+            var card = selected as CardRow;
+            if (card == null) {
+                return null;
+            }
+
+            return card.card;
+        }
+
         public void load_cards (Card[] cards) {
             listbox.foreach ((element) => element.destroy ());
 
