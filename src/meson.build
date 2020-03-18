@@ -24,6 +24,8 @@ elementary_accounts_library = shared_library(
     install_dir: [true, true, true, true]
 )
 
+pkg.generate(elementary_accounts_library)
+
 elementary_accounts_library_dep = declare_dependency(
     link_with: elementary_accounts_library,
     include_directories: include_directories('.'),

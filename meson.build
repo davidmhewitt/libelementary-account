@@ -10,6 +10,8 @@ add_project_arguments(
     language:'c'
 )
 
+pkg = import('pkgconfig')
+
 webkit_dep = dependency('webkit2gtk-4.0')
 soup_dep = dependency('libsoup-2.4')
 json_dep = dependency('json-glib-1.0')
