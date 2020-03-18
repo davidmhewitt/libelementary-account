@@ -9,7 +9,8 @@ public class MainWindow : Gtk.Window {
         set_default_size (1024, 768);
 
         account = new ElementaryAccount.AccountManager ();
-        account.loaded.connect (on_account_loaded);
+        account.auth_state_changed.connect (on_auth_state_changed);
+        account.check_authenticated.begin ();
         destroy.connect (Gtk.main_quit);
 
         status_label = new Gtk.Label (_("Status:"));
@@ -41,7 +42,7 @@ public class MainWindow : Gtk.Window {
         show_all ();
     }
 
-    private void on_account_loaded (bool has_token) {
+    private void on_auth_state_changed (bool has_token) {
         status_label.label = has_token ? "Status: Logged In" : "Status: Logged Out";
         login_button.sensitive = !has_token;
 

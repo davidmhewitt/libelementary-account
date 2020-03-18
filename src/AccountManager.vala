@@ -1,6 +1,6 @@
 namespace ElementaryAccount {
     public class AccountManager : GLib.Object {
-        public signal void loaded (bool token_found);
+        public signal void auth_state_changed (bool token_available);
         public string? account_token { get; private set; }
         private Secret.Collection collection;
 
@@ -8,15 +8,14 @@ namespace ElementaryAccount {
 
         construct {
             soup_session = new Soup.Session ();
-            find_tokens.begin ();
         }
 
-        public async void find_tokens () {
+        public async bool check_authenticated () {
             try {
                 collection = yield Secret.Collection.for_alias (null, Secret.COLLECTION_DEFAULT, Secret.CollectionFlags.LOAD_ITEMS, null);
             } catch (Error e) {
                 critical (e.message);
-                return;
+                return false;
             }
 
             foreach (unowned Secret.Item secret_item in collection.get_items ()) {
@@ -25,8 +24,8 @@ namespace ElementaryAccount {
 
                     var secret = secret_item.get_secret ().get_text ();
 
-                    if (!test_login (secret)) {
-                        secret_item.delete (null);
+                    if (!yield test_login (secret)) {
+                        secret_item.@delete (null);
                         account_token = null;
                     } else {
                         account_token = secret;
@@ -37,22 +36,28 @@ namespace ElementaryAccount {
                 }
             }
 
-            loaded (account_token != null);
+            auth_state_changed (account_token != null);
+            return account_token != null;
         }
 
-        private bool test_login (string token) {
+        private async bool test_login (string token) {
+            bool credentials_work = false;
+
             var base_uri = new Soup.URI (Constants.BASE_URL);
             var card_uri = new Soup.URI.with_base (base_uri, "/api/me");
             var message = new Soup.Message.from_uri ("GET", card_uri);
             message.request_headers.append ("Authorization", "Bearer %s".printf (token));
 
-            soup_session.send_message (message);
+            soup_session.queue_message (message, (sess, mess) => {
+                if (mess.status_code == 200) {
+                    credentials_work = true;
+                }
 
-            if (message.status_code == 200) {
-                return true;
-            }
+                Idle.add (test_login.callback);
+            });
 
-            return false;
+            yield;
+            return credentials_work;
         }
 
         public void exchange_code_for_token (string url, string code, string? verifier = null) {
@@ -105,7 +110,7 @@ namespace ElementaryAccount {
                 );
 
                 account_token = token;
-                loaded (true);
+                auth_state_changed (true);
             }
         }
 
