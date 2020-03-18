@@ -2,7 +2,6 @@ public class LoginFlow : Gtk.Window {
     public signal void finished ();
 
     private string verifier;
-    private const string CLIENT_ID ="1oUZ7k1x32M3nMhU8wcbrN8Y";
 
     public ElementaryAccount.AccountManager account { get; construct; }
 
@@ -27,7 +26,7 @@ public class LoginFlow : Gtk.Window {
 
         var constructed_uri = new Soup.URI (ElementaryAccount.Utils.get_api_uri ("/oauth/authorize"));
         constructed_uri.set_query_from_fields (
-            "client_id", CLIENT_ID,
+            "client_id", ElementaryAccount.Constants.CLIENT_ID,
             "scope", "profile",
             "response_type", "code",
             "redirect_uri", "urn:ietf:wg:oauth:2.0:oob",
@@ -46,7 +45,7 @@ public class LoginFlow : Gtk.Window {
     private void on_code_received (string code) {
         warning ("Login succeeded with code: %s", code);
 
-        account.exchange_code_for_token (ElementaryAccount.Utils.get_api_uri ("/oauth/token"), CLIENT_ID, code, verifier);
+        account.exchange_code_for_token (ElementaryAccount.Utils.get_api_uri ("/oauth/token"), code, verifier);
 
         finished ();
     }

@@ -1,6 +1,4 @@
 public class MainWindow : Gtk.Window {
-    private const string CLIENT_ID ="1oUZ7k1x32M3nMhU8wcbrN8Y";
-
     private ElementaryAccount.AccountManager account;
     private ElementaryAccount.CardListView cards_list;
 

@@ -22,7 +22,16 @@ namespace ElementaryAccount {
             foreach (unowned Secret.Item secret_item in collection.get_items ()) {
                 if (secret_item.get_schema_name () == "io.elementary.account") {
                     yield secret_item.load_secret (null);
-                    account_token = secret_item.get_secret ().get_text ();
+
+                    var secret = secret_item.get_secret ().get_text ();
+
+                    if (!test_login (secret)) {
+                        secret_item.delete (null);
+                        account_token = null;
+                    } else {
+                        account_token = secret;
+                        break;
+                    }
 
                     break;
                 }
@@ -31,12 +40,27 @@ namespace ElementaryAccount {
             loaded (account_token != null);
         }
 
-        public void exchange_code_for_token (string url, string client_id, string code, string? verifier = null) {
+        private bool test_login (string token) {
+            var base_uri = new Soup.URI (Constants.BASE_URL);
+            var card_uri = new Soup.URI.with_base (base_uri, "/api/me");
+            var message = new Soup.Message.from_uri ("GET", card_uri);
+            message.request_headers.append ("Authorization", "Bearer %s".printf (token));
+
+            soup_session.send_message (message);
+
+            if (message.status_code == 200) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void exchange_code_for_token (string url, string code, string? verifier = null) {
             string body;
             if (verifier != null) {
                 body = Soup.Form.encode (
                     "grant_type", "authorization_code",
-                    "client_id", client_id,
+                    "client_id", Constants.CLIENT_ID,
                     "code_verifier", verifier,
                     "code", code,
                     "redirect_uri", "urn:ietf:wg:oauth:2.0:oob"
@@ -44,7 +68,7 @@ namespace ElementaryAccount {
             } else {
                 body = Soup.Form.encode (
                     "grant_type", "authorization_code",
-                    "client_id", client_id,
+                    "client_id", Constants.CLIENT_ID,
                     "code", code,
                     "redirect_uri", "urn:ietf:wg:oauth:2.0:oob"
                 );
