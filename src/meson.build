@@ -24,7 +24,10 @@ elementary_accounts_library = shared_library(
     install_dir: [true, true, true, true]
 )
 
-pkg.generate(elementary_accounts_library)
+pkg.generate(
+    elementary_accounts_library,
+    requires: ['webkit2gtk-4.0']
+)
 
 elementary_accounts_library_dep = declare_dependency(
     link_with: elementary_accounts_library,
