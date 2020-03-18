@@ -3,11 +3,18 @@ public class PurchaseFlow : Gtk.Window {
 
     public ElementaryAccount.AccountManager account { get; construct; }
     public ElementaryAccount.Card? payment_method { get; construct; }
+    public string app_id { get; construct; }
+    public int amount { get; construct; }
+    public string anon_id { get; construct; }
 
-    private const string URL = "/intents/do_charge?amount=500&stripe_account=acct_1AWVFSHS6fmgRLTb&payment_method=%s";
-
-    public PurchaseFlow (ElementaryAccount.AccountManager manager, ElementaryAccount.Card? payment_method) {
-        Object (account: manager, payment_method: payment_method);
+    public PurchaseFlow (ElementaryAccount.AccountManager manager, int amount, string app_id, ElementaryAccount.Card? payment_method, string? anon_id) {
+        Object (
+            account: manager,
+            payment_method: payment_method,
+            app_id: app_id,
+            amount: amount,
+            anon_id: anon_id
+        );
     }
 
     construct {
@@ -21,18 +28,21 @@ public class PurchaseFlow : Gtk.Window {
         webview.success.connect (() => finished ());
 
         var payment_uri = new Soup.URI (ElementaryAccount.Utils.get_api_uri ("/intents/do_charge"));
+
+        var args = new GLib.HashTable<string, string>(str_hash, str_equal);
+        args.insert ("amount", amount.to_string ());
+        args.insert ("app_id", app_id);
+        args.insert ("stripe_account", "acct_1AWVFSHS6fmgRLTb");
+
         if (payment_method != null) {
-            payment_uri.set_query_from_fields (
-                "amount", "500",
-                "stripe_account", "acct_1AWVFSHS6fmgRLTb",
-                "payment_method", payment_method.stripe_id
-            );
-        } else {
-            payment_uri.set_query_from_fields (
-                "amount", "500",
-                "stripe_account", "acct_1AWVFSHS6fmgRLTb"
-            );
+            args.insert ("payment_method", payment_method.stripe_id);
         }
+
+        if (anon_id != null) {
+            args.insert ("anon_id", anon_id);
+        }
+
+        payment_uri.set_query_from_form (args);
 
         var payment_url = payment_uri.to_string (false);
         if (account.account_token != null) {

@@ -5,6 +5,8 @@ public class MainWindow : Gtk.Window {
     private Gtk.Label status_label;
     private Gtk.Button login_button;
 
+    private bool logged_in = false;
+
     construct {
         set_default_size (1024, 768);
 
@@ -43,6 +45,8 @@ public class MainWindow : Gtk.Window {
     }
 
     private void on_auth_state_changed (bool has_token) {
+        logged_in = has_token;
+
         status_label.label = has_token ? "Status: Logged In" : "Status: Logged Out";
         login_button.sensitive = !has_token;
 
@@ -73,7 +77,12 @@ public class MainWindow : Gtk.Window {
     private void do_purchase_flow () {
         var card = cards_list.get_selected_card ();
 
-        var purchase_flow = new PurchaseFlow (account, card);
+        string? anon_id = null;
+        if (!logged_in) {
+            anon_id = ElementaryAccount.Utils.base64_url_encode (ElementaryAccount.Utils.generate_random_bytes (32));
+        }
+
+        var purchase_flow = new PurchaseFlow (account, 500, "com.github.cassidyjames.dippi", card, anon_id);
         purchase_flow.finished.connect (() => {
             purchase_flow.destroy ();
         });
