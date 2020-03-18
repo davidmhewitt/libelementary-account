@@ -29,6 +29,11 @@ pkg.generate(
     requires: ['webkit2gtk-4.0']
 )
 
+install_data(
+    'elementary-account.deps',
+    install_dir: join_paths(get_option('datadir'), 'vala', 'vapi')
+)
+
 elementary_accounts_library_dep = declare_dependency(
     link_with: elementary_accounts_library,
     include_directories: include_directories('.'),
