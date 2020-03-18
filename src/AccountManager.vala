@@ -123,6 +123,22 @@ namespace ElementaryAccount {
             soup_session.send_message (message);
         }
 
+        public Json.Node get_purchased_apps () {
+            var base_uri = new Soup.URI (Constants.BASE_URL);
+            var app_uri = new Soup.URI.with_base (base_uri, "/api/v1/get_tokens");
+            var message = new Soup.Message.from_uri ("POST", app_uri);
+            message.request_headers.append ("Authorization", "Bearer %s".printf (account_token));
+
+            soup_session.send_message (message);
+
+            var response_body = (string)message.response_body.data;
+
+            var parser = new Json.Parser ();
+            parser.load_from_data (response_body, -1);
+
+            return parser.get_root ();
+        }
+
         public Card[] get_cards () {
             Card[] cards = {};
 
