@@ -123,11 +123,26 @@ namespace ElementaryAccount {
             soup_session.send_message (message);
         }
 
-        public Json.Node get_purchased_apps () {
+        public Json.Node get_purchased_apps (string[] ids) {
             var base_uri = new Soup.URI (Constants.BASE_URL);
             var app_uri = new Soup.URI.with_base (base_uri, "/api/v1/get_tokens");
             var message = new Soup.Message.from_uri ("POST", app_uri);
             message.request_headers.append ("Authorization", "Bearer %s".printf (account_token));
+
+            var json = new Json.Object ();
+            var ids_array = new Json.Array ();
+
+            json.set_array_member ("ids", ids_array);
+
+            foreach (var token in ids) {
+                ids_array.add_string_element (token);
+            }
+
+            var root = new Json.Node.alloc ();
+            root.init_object (json);
+            var body = Json.to_string (root, false);
+
+            message.set_request ("application/json", Soup.MemoryUse.COPY, body.data);
 
             soup_session.send_message (message);
 
