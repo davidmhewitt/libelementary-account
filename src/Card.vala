@@ -6,6 +6,12 @@ namespace ElementaryAccount {
         public int exp_year { get; construct; }
         public string stripe_id { get; construct; }
 
+        public string title_case_brand {
+            owned get {
+                return "%c%s".printf (brand[0].toupper (), brand[1:brand.length]);
+            }
+        }
+
         public AccountManager account { get; construct; }
 
         public class Card (string brand, string last_four, int exp_month, int exp_year, string stripe_id, AccountManager account) {

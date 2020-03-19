@@ -1,7 +1,11 @@
 namespace ElementaryAccount {
     public class AccountManager : GLib.Object {
         public signal void auth_state_changed (bool token_available);
+
         public string? account_token { get; private set; }
+
+        public bool logged_in { get; private set; default = false; }
+
         private Secret.Collection collection;
 
         private Soup.Session soup_session;
@@ -36,6 +40,7 @@ namespace ElementaryAccount {
                 }
             }
 
+            logged_in = account_token != null;
             auth_state_changed (account_token != null);
             return account_token != null;
         }
@@ -110,6 +115,7 @@ namespace ElementaryAccount {
                 );
 
                 account_token = token;
+                logged_in = true;
                 auth_state_changed (true);
             }
         }
