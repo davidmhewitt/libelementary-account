@@ -103,7 +103,6 @@ namespace ElementaryAccount {
                     "exp", Secret.SchemaAttributeType.STRING
                 );
 
-                // FIXME: Lookup and replace old tokens
                 Secret.Item.create.begin (
                     collection,
                     schema,
@@ -129,7 +128,7 @@ namespace ElementaryAccount {
             soup_session.send_message (message);
         }
 
-        public Json.Node get_purchased_apps (string[] ids) {
+        public async Gee.HashMap<string, string> get_purchased_apps (string[] ids) {
             var base_uri = new Soup.URI (Constants.BASE_URL);
             var app_uri = new Soup.URI.with_base (base_uri, "/api/v1/get_tokens");
             var message = new Soup.Message.from_uri ("POST", app_uri);
@@ -150,14 +149,49 @@ namespace ElementaryAccount {
 
             message.set_request ("application/json", Soup.MemoryUse.COPY, body.data);
 
-            soup_session.send_message (message);
+            var found_tokens = new Gee.HashMap<string, string> ();
 
-            var response_body = (string)message.response_body.data;
+            soup_session.queue_message (message, (sess, mess) => {
+                var response_body = (string)mess.response_body.data;
 
-            var parser = new Json.Parser ();
-            parser.load_from_data (response_body, -1);
+                var parser = new Json.Parser ();
+                parser.load_from_data (response_body, -1);
+                var response = parser.get_root ().get_object ();
 
-            return parser.get_root ();
+                if (response.has_member ("tokens")) {
+                    var tokens_dict = response.get_object_member ("tokens");
+                    var members = tokens_dict.get_members ();
+                    foreach (var id in members) {
+                        var member = tokens_dict.get_member (id);
+                        var token = member.get_string ();
+
+                        found_tokens[id] = token;
+                    }
+                }
+
+                Idle.add (get_purchased_apps.callback);
+            });
+
+            yield;
+
+            return found_tokens;
+        }
+
+        public async string? poll_for_token (string app_id, string? anon_id = null) {
+            for (int i = 0; i < 5; i++) {
+                var tokens = yield get_purchased_apps ({app_id});
+                if (tokens[app_id] != null) {
+                    return tokens[app_id];
+                }
+                Timeout.add_seconds (2, () => {
+                    Idle.add (poll_for_token.callback);
+                    return false;
+                });
+
+                yield;
+            }
+
+            return null;
         }
 
         public Card[] get_cards () {
