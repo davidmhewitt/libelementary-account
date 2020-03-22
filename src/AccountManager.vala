@@ -194,6 +194,44 @@ namespace ElementaryAccount {
             return null;
         }
 
+        public async string? get_temp_token (string app_id) {
+            var base_uri = new Soup.URI (Constants.BASE_URL);
+            var app_uri = new Soup.URI.with_base (base_uri, "/api/v1/get_temp_token");
+            var message = new Soup.Message.from_uri ("GET", app_uri);
+
+            var json = new Json.Object ();
+            json.set_string_member ("id", app_id);
+
+            var root = new Json.Node.alloc ();
+            root.init_object (json);
+            var body = Json.to_string (root, false);
+
+            message.set_request ("application/json", Soup.MemoryUse.COPY, body.data);
+
+            string? token = null;
+            soup_session.queue_message (message, (sess, mess) => {
+                var response_body = (string)mess.response_body.data;
+
+                var parser = new Json.Parser ();
+                parser.load_from_data (response_body, -1);
+                var response = parser.get_root ().get_object ();
+
+                if (response.has_member ("tokens")) {
+                    var tokens_dict = response.get_object_member ("tokens");
+                    var token_member = tokens_dict.get_member (app_id);
+                    if (token_member != null) {
+                        token = token_member.get_string ();
+                    }
+                }
+
+                Idle.add (get_temp_token.callback);
+            });
+
+            yield;
+
+            return token;
+        }
+
         public Card[] get_cards () {
             Card[] cards = {};
 
